@@ -137,6 +137,8 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
     {
         return [
 			[ ["var"=>["a"]], ["a"=>1], 1 ],
+			[ ["var"=>["a"]], (object)["a"=>1], 1 ], //Data as object
+			[ ["var"=>["a"]], json_decode('{"a":1}'), 1 ], //Data as object
 			[ ["var"=>["b"]], ["a"=>1], null ],
 			[ ["var"=>["a"]], null, null ],
 			[ ["var"=>"a"], ["a"=>1], 1 ],
@@ -149,6 +151,8 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 
 			//Array
 			[ ["var"=>1], ["apple","banana"], "banana" ],
+			[ ["var"=>"1"], ["apple","banana"], "banana" ],
+			[ ["var"=>"1.1"], ["apple",["banana", "beer"] ], "beer" ],
 
 			//Compound examples from the docs
 			[

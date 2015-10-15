@@ -17,7 +17,10 @@ class JsonLogic
 
     public static function apply($logic = [], $data = [])
     {
-		if(is_object($logic)) $logic = (array)$logic;//I'd rather work with array syntax
+		//I'd rather work with array syntax
+		if(is_object($logic)) $logic = (array)$logic;
+		if(is_object($data)) $data = (array)$data;
+
 		if(! self::is_logic($logic) ) return $logic;
 
 		$operators = [
@@ -35,10 +38,8 @@ class JsonLogic
 			'?:' => function($a, $b, $c){ return $a ? $b : $c; },
 			'log' => function($a){ error_log($a); return $a; },
 			'var' => function($a) use ($data){ 
-				//Numeric index of array data, don't let explode() cast you
-				if(is_numeric($a)) return $data[$a];
-
 				//Descending into data using dot-notation
+				//This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
 				foreach(explode('.', $a) as $prop){
 					if(!isset($data[$prop])) return null; //Not found
 					$data = $data[$prop];
