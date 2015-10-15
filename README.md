@@ -19,20 +19,18 @@ The same format can also be executed in JavaScript by the library [json-logic-js
 
 ### A note about formatting
 
-This is a PHP interpreter of a format designed to be transmitted and stored JSON.  So it makes sense to conceptualize the rules in JSON, where a hash-map has one syntax:
+This is a PHP interpreter of a format designed to be transmitted and stored JSON.  So it makes sense to conceptualize the rules in JSON.
+
+Expressed in JSON, a JsonLogic rule is always one key, with an array of values.
 
 ```json
-{ "having_fun" : true}
+{"==" : ["apples", "apples"]}
 ```
-
-And an array has a different syntax:
-```json
-[ "lions", "tigers", "bears"]
-```
-
-But since when you use this library, you'll be in PHP, the examples below are using data that's already been through a `json_decode`.
 
 I prefer working in PHP with [JSON decoded](http://php.net/manual/en/function.json-decode.php) into array syntax, e.g.
+```php
+["==" => ["apples", "apples"]]
+```
 
 The library will happily accept either:
 ```php
