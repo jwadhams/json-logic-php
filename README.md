@@ -51,7 +51,7 @@ JWadhams\JsonLogic::apply(( [ "==" => [1, 1] ] );
 // true
 ```
 
-This is a nice, simple test. Does 1 equal 1?  A few things about the format:
+This is a simple test, equivalent to `1 == 1`.  A few things about the format:
 
   1. The operator is always in the "key" position. There is only one key per JsonLogic rule.
   1. The values are typically an array.
@@ -78,7 +78,7 @@ In an infix language (like PHP) this could be written as:
     
 ### Data-Driven
 
-Obviously these rules aren't very interesting if they can only take static literal data. Typically `jsonLogic` will be called with a rule object and a data object. You can use the `var` operator to get attributes of the data object:
+Obviously these rules aren't very interesting if they can only take static literal data. Typically `JsonLogic::apply` will be called with a rule object and a data object. You can use the `var` operator to get attributes of the data object:
 
 ```php
 JWadhams\JsonLogic::apply(
@@ -123,7 +123,7 @@ JWadhams\JsonLogic::apply($rules, $data);
 ```
 
 ### Always and Never
-Sometimes the rule you want to process is "Always" or "Never."  If `jsonLogic` is called with a non-object, non-associative-array, it just returns it.
+Sometimes the rule you want to process is "Always" or "Never."  If the first parameter passed to `JsonLogic::apply` is a non-object, non-associative-array, it is returned immediately.
 
 ```php
 //Always
