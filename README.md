@@ -13,13 +13,11 @@ The same format can also be executed in JavaScript by the library [json-logic-js
   1. **Secure.** We never `eval()`. Rules only have access to data you provide.
   1. **Flexible.** Most operands are 1 line of code.
 
-
-
 ## Examples
 
 ### A note about formatting
 
-This is a PHP interpreter of a format designed to be transmitted and stored JSON.  So it makes sense to conceptualize the rules in JSON.
+This is a PHP interpreter of a format designed to be transmitted and stored as JSON.  So it makes sense to conceptualize the rules in JSON.
 
 Expressed in JSON, a JsonLogic rule is always one key, with an array of values.
 
@@ -27,21 +25,22 @@ Expressed in JSON, a JsonLogic rule is always one key, with an array of values.
 {"==" : ["apples", "apples"]}
 ```
 
-I prefer working in PHP with [JSON decoded](http://php.net/manual/en/function.json-decode.php) into array syntax, e.g.
+PHP has a way to express associative arrays as literals, and no object equivalent, so all these examples are written as if JsonLogic rules were decoded with  [`json_decode`'s `$assoc` parameter set true](http://php.net/manual/en/function.json-decode.php), e.g.
 ```php
-["==" => ["apples", "apples"]]
+json_decode('{"==" : ["apples", "apples"]}', true);
+// ["==" => ["apples", "apples"]]
 ```
 
-The library will happily accept either:
+The library will happily accept either associative arrays or objects:
 ```php
 $rule = '{"==":["apples", "apples"]}';
 
 //Decode the JSON string to an array, and evaluate it.
-JWadhams\JsonLogic::apply(json_decode($rule, true));
+JWadhams\JsonLogic::apply( json_decode($rule, true) );
 // true
 
 //Decode the JSON string to an object, and evaluate it.
-JWadhams\JsonLogic::apply(json_decode($rule, false));
+JWadhams\JsonLogic::apply( json_decode($rule, false) );
 // true
 ```
 
@@ -54,9 +53,9 @@ JWadhams\JsonLogic::apply(( [ "==" => [1, 1] ] );
 
 This is a nice, simple test. Does 1 equal 1?  A few things about the format:
 
-  1. The operator is always in the "key" position. There is only one key per object.
+  1. The operator is always in the "key" position. There is only one key per JsonLogic rule.
   1. The values are typically an array.
-  1. Values can be any valid JSON type. (Strings usually, but also numbers, booleans, etc)
+  1. Each value can be any JSON primitive: string, number, boolean, or null
 
 ### Compound
 Here we're beginning to nest rules. 
@@ -152,4 +151,17 @@ JWadhams\JsonLogic::apply(false, $i_wasnt_even_supposed_to_be_here);
   - `?:` - [ternary](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator), like `a ? b : c;`
   - `var` - Retrieve data from the provided data object
   - `log` - Logs the first value to `error_log`, then passes it through unmodified.
-  
+
+## Installation
+
+The best way to install this library is via [Composer](https://getcomposer.org/):
+
+```bash
+composer require jwadhams/json-logic-php
+```
+
+If that doesn't suit you, and you want to manage updates yourself, the entire library is self-contained in `src/JWadhams/JsonLogic.php` and you can download it straight into your project as you see fit.
+
+```bash
+curl -O https://raw.githubusercontent.com/jwadhams/json-logic-php/master/src/JWadhams/JsonLogic.php
+```
