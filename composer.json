@@ -1,0 +1,21 @@
+{
+    "name": "jwadhams/json-logic-php",
+    "description": "Build rules with complex comparisons and boolean operators, serialized as JSON, and execute them in PHP",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeremy Wadhams",
+            "email": "jwadhams@dealerinspire.com"
+        }
+    ],
+    "require": {},
+	"minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "JWadhams": "src/"
+        }
+    }
+}
