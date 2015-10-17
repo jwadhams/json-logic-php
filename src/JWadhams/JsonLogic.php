@@ -45,6 +45,11 @@ class JsonLogic
 					$data = $data[$prop];
 				}
 				return $data;
+			},
+			'in' => function($a, $b){
+				if(is_array($b)) return in_array($a, $b);
+				if(is_string($b)) return strpos($b, $a) !== false;
+				return false;
 			}
 		];
 

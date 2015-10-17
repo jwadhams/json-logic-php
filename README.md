@@ -55,7 +55,7 @@ This is a simple test, equivalent to `1 == 1`.  A few things about the format:
 
   1. The operator is always in the "key" position. There is only one key per JsonLogic rule.
   1. The values are typically an array.
-  1. Each value can be any JSON primitive: string, number, boolean, or null
+  1. Each value can be a string, number, boolean, array, or null
 
 ### Compound
 Here we're beginning to nest rules. 
@@ -149,6 +149,8 @@ JWadhams\JsonLogic::apply(false, $i_wasnt_even_supposed_to_be_here);
   - `and`
   - `or`
   - `?:` - [ternary](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator), like `a ? b : c;`
+  - `in` - Value in array (e.g., `{"in":[ "Ringo", ["John", "Paul", "George", "Ringo"] ]}`) 
+    - *or* substring in string (e.g., `{"in":["Spring", "Springfield"]}`)
   - `var` - Retrieve data from the provided data object
   - `log` - Logs the first value to `error_log`, then passes it through unmodified.
 

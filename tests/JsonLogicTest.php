@@ -29,6 +29,31 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
         $this->assertEquals(true, JWadhams\JsonLogic::apply($object_style));
     }
 
+
+
+	/**
+     * @dataProvider passthroughProvider
+     */
+	public function testPassthrough($logic)
+    {
+        // Assert
+        $this->assertEquals($logic, JWadhams\JsonLogic::apply($logic));
+    }
+
+    public function passthroughProvider()
+    {
+        return [
+			//If the "rule" isn't a JSON-object, pass it through
+			[ true ], //Always
+			[ false ], //Never
+			[ 17 ], //Number
+			[ "apple" ], //string
+			[ null ], //Null
+			[ ["a","b"] ], //numeric array
+		];
+	}
+
+
 	/**
      * @dataProvider singleProvider
      */
@@ -94,6 +119,12 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 
 			[ [ "?:" => [true, 1, 2] ], [], 1 ],
 			[ [ "?:" => [false, 1, 2] ], [], 2 ],
+
+			[ [ "in" => ['Bart',['Bart', 'Homer', 'Lisa', 'Marge', 'Maggie']] ], [], true ],
+			[ [ "in" => ['Milhouse',['Bart', 'Homer', 'Lisa', 'Marge', 'Maggie']] ], [], false ],
+
+			[ [ "in" => ["Spring", "Springfield"] ], [], true ],
+			[ [ "in" => ["i", "team"] ], [], false ],
 		];
     }
 
