@@ -112,10 +112,30 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 			[ [ "or" => [true, false] ], [], true ],
 			[ [ "or" => [false, false] ], [], false ],
 
+			[ [ "or" => [false, false, true] ], [], true ], //More than 2 args
+			[ [ "or" => [false] ], [], false ], //less than 2 args
+			[ [ "or" => [true] ], [], true ], //less than 2 args
+
+			[ [ "or" => [1,3] ], [], 1 ], //Non-bool args
+			[ [ "or" => [3, false] ], [], 3 ], //Non-bool args
+			[ [ "or" => [false, 3] ], [], 3 ], //Non-bool args
+			
+
+
+
 			[ [ "and" => [true, true] ], [], true ],
 			[ [ "and" => [false, true] ], [], false ],
 			[ [ "and" => [true, false] ], [], false ],
 			[ [ "and" => [false, false] ], [], false],
+
+			[ [ "and" => [true, true, false] ], [], false ], //More than 2 args
+			[ [ "and" => [false] ], [], false ], //less than 2 args
+			[ [ "and" => [true] ], [], true ], //less than 2 args
+
+			[ [ "and" => [1,3] ], [], 3 ], //Non-bool args
+			[ [ "and" => [3, false] ], [], false ], //Non-bool args
+			[ [ "and" => [false, 3] ], [], false ], //Non-bool args
+			
 
 			[ [ "?:" => [true, 1, 2] ], [], 1 ],
 			[ [ "?:" => [false, 1, 2] ], [], 2 ],
@@ -125,6 +145,16 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 
 			[ [ "in" => ["Spring", "Springfield"] ], [], true ],
 			[ [ "in" => ["i", "team"] ], [], false ],
+
+			[ [ "cat" => "ice" ], [], "ice" ],
+			[ [ "cat" => ["ice"] ], [], "ice" ],
+			[ [ "cat" => ["ice", "cream"] ], [], "icecream" ],
+			[ [ "cat" => ["we all scream for ", "ice", "cream"] ], [], "we all scream for icecream" ],
+
+			[ [ "%" => [1,2] ], [], 1 ],
+			[ [ "%" => [2,2] ], [], 0 ],
+			[ [ "%" => [3,2] ], [], 1 ],
+			
 		];
     }
 

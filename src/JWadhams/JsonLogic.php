@@ -32,9 +32,16 @@ class JsonLogic
 			'>=' => function($a, $b){ return $a >= $b; },
 			'<' => function($a, $b){ return $a < $b; },
 			'<=' => function($a, $b){ return $a <= $b; },
+			'%' => function($a, $b){ return $a % $b; },
 			'!' => function($a){ return !$a; },
-			'and' => function($a, $b){ return $a and $b; },
-			'or' => function($a, $b){ return $a or $b; },
+			'and' => function(){
+				foreach(func_get_args() as $a){ if( ! $a) return $a; }
+				return $a;
+			},
+			'or' => function(){
+				foreach(func_get_args() as $a){ if($a) return $a; }
+				return $a;
+			},
 			'?:' => function($a, $b, $c){ return $a ? $b : $c; },
 			'log' => function($a){ error_log($a); return $a; },
 			'var' => function($a) use ($data){ 
@@ -50,6 +57,9 @@ class JsonLogic
 				if(is_array($b)) return in_array($a, $b);
 				if(is_string($b)) return strpos($b, $a) !== false;
 				return false;
+			},
+			'cat' => function(){
+				return implode(func_get_args(), "");
 			}
 		];
 
