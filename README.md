@@ -1,21 +1,14 @@
 # json-logic-php
 
-The goal of this project is to share complex logical expressions between front-end and back-end code.
+This parser accepts [JsonLogic](http://jsonlogic.com) rules and executes them in PHP.
 
-The format takes inspiration from [function calls in Amazon CloudFormation JSON templates](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/gettingstarted.templatebasics.html#gettingstarted.templatebasics.mappings).
+The JsonLogic format is designed to allow you to share rules (logic) between front-end and back-end code (regardless of language difference), even to store logic along with a record in a database.  JsonLogic is documented extensively at [JsonLogic.com](http://jsonlogic.com), including examples of every [supported operation](http://jsonlogic.com/operations.html) and a place to [try out rules in your browser](http://jsonlogic.com/play.html).
 
 The same format can also be executed in JavaScript by the library [json-logic-js](https://github.com/jwadhams/json-logic-js/)
 
-## Virtues
-
-  1. **Terse.**
-  1. **Consistent.** `{"operator" : ["values" ... ]}`  Always.
-  1. **Secure.** We never `eval()`. Rules only have access to data you provide.
-  1. **Flexible.** Most operands are 1 line of code.
-
 ## Examples
 
-### A note about formatting
+### A note about types
 
 This is a PHP interpreter of a format designed to be transmitted and stored as JSON.  So it makes sense to conceptualize the rules in JSON.
 
@@ -135,25 +128,6 @@ JWadhams\JsonLogic::apply(false, $i_wasnt_even_supposed_to_be_here);
 // false
 ```
     
-## Supported Operations
-
-  - `==` 
-  - `===` 
-  - `!=`
-  - `!==`
-  - `>`
-  - `>=`
-  - `<`
-  - `<=`
-  - `!` - Unary negation
-  - `and`
-  - `or`
-  - `?:` - [ternary](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator), like `a ? b : c;`
-  - `in` - Value in array (e.g., `{"in":[ "Ringo", ["John", "Paul", "George", "Ringo"] ]}`) 
-    - *or* substring in string (e.g., `{"in":["Spring", "Springfield"]}`)
-  - `var` - Retrieve data from the provided data object
-  - `log` - Logs the first value to `error_log`, then passes it through unmodified.
-
 ## Installation
 
 The best way to install this library is via [Composer](https://getcomposer.org/):
