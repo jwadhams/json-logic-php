@@ -16,7 +16,11 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 	public function testCommon($logic, $data, $expected)
     {
         // Assert
-        $this->assertEquals($expected, JWadhams\JsonLogic::apply($logic, $data));
+        $this->assertEquals(
+			$expected, 
+			JWadhams\JsonLogic::apply($logic, $data),
+			"JsonLogic::apply(".json_encode($logic).", ".json_encode($data).") == ".json_encode($expected)
+		);
     }
 
 

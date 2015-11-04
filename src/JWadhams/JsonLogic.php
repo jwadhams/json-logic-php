@@ -30,8 +30,16 @@ class JsonLogic
 			'!==' => function($a, $b){ return $a !== $b; },
 			'>' => function($a, $b){ return $a > $b; },
 			'>=' => function($a, $b){ return $a >= $b; },
-			'<' => function($a, $b){ return $a < $b; },
-			'<=' => function($a, $b){ return $a <= $b; },
+			'<' => function($a, $b, $c = null){ 
+				return ($c === null) ? 
+					( $a < $b ) : 
+					( ( $a < $b ) and ( $b < $c ) ) ;
+			},
+			'<=' => function($a, $b, $c = null){ 
+				return ($c === null) ? 
+					( $a <= $b ) :
+					( ( $a <= $b ) and ( $b <= $c ) ) ;
+			},
 			'%' => function($a, $b){ return $a % $b; },
 			'!' => function($a){ return !$a; },
 			'and' => function(){
