@@ -77,7 +77,13 @@ class JsonLogic
 				return implode(func_get_args(), "");
 			},
 			'max' => function(){ return max(func_get_args()); },
-			'min' => function(){ return min(func_get_args()); }
+			'min' => function(){ return min(func_get_args()); },
+			'+' => function(){ return array_sum(func_get_args()); },
+			'-' => function($a,$b=0){ return $a - $b; },
+			'/' => function($a,$b=1){ return $a / $b; },
+			'*' => function(){
+				return array_reduce(func_get_args(), function($a, $b){ return $a*$b; }, 1); 
+			}
 		];
 
 		//There can be only one operand per logic step
