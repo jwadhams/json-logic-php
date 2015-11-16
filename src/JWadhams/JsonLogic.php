@@ -79,8 +79,8 @@ class JsonLogic
 			'max' => function(){ return max(func_get_args()); },
 			'min' => function(){ return min(func_get_args()); },
 			'+' => function(){ return array_sum(func_get_args()); },
-			'-' => function($a,$b=0){ return $a - $b; },
-			'/' => function($a,$b=1){ return $a / $b; },
+			'-' => function($a,$b=null){ if($b===null){return -$a;}else{return $a - $b;} },
+			'/' => function($a,$b){ return $a / $b; },
 			'*' => function(){
 				return array_reduce(func_get_args(), function($a, $b){ return $a*$b; }, 1); 
 			}
