@@ -75,7 +75,9 @@ class JsonLogic
 			},
 			'cat' => function(){
 				return implode(func_get_args(), "");
-			}
+			},
+			'max' => function(){ return max(func_get_args()); },
+			'min' => function(){ return min(func_get_args()); }
 		];
 
 		//There can be only one operand per logic step
