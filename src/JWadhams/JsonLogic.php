@@ -52,18 +52,18 @@ class JsonLogic
 			},
 			'?:' => function($a, $b, $c){ return $a ? $b : $c; },
 			'log' => function($a){ error_log($a); return $a; },
-			'var' => function($a) use ($data){ 
+			'var' => function($a, $default = null) use ($data){ 
 				//Descending into data using dot-notation
 				//This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
 				foreach(explode('.', $a) as $prop){
 					if(is_array($data)){
-						if(!isset($data[$prop])) return null; //Not found
+						if(!isset($data[$prop])) return $default; //Not found
 						$data = $data[$prop];
 					}elseif(is_object($data)){
-						if(!property_exists($data,$prop)) return null; //Not found
+						if(!property_exists($data,$prop)) return $default; //Not found
 						$data = $data->{$prop};
 					}else{
-						return null;
+						return $default; //Trying to get a value from a primitive
 					}
 				}
 				return $data;
