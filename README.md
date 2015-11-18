@@ -40,7 +40,7 @@ JWadhams\JsonLogic::apply( json_decode($rule, false) );
 
 ### Simple
 ```php
-JWadhams\JsonLogic::apply(( [ "==" => [1, 1] ] );
+JWadhams\JsonLogic::apply( [ "==" => [1, 1] ] );
 // true
 ```
 
@@ -54,10 +54,10 @@ This is a simple test, equivalent to `1 == 1`.  A few things about the format:
 Here we're beginning to nest rules. 
 
 ```php
-JWadhams\JsonLogic::apply((
-	[ "and" : [
-		[ ">" : [3,1] ],
-		[ "<" : [1,3] ]
+JWadhams\JsonLogic::apply(
+	[ "and" => [
+		[ ">" => [3,1] ],
+		[ "<" => [1,3] ]
 	] ]
 );
 // true
@@ -76,7 +76,7 @@ Obviously these rules aren't very interesting if they can only take static liter
 ```php
 JWadhams\JsonLogic::apply(
 	[ "var" => ["a"] ], // Rule
-	[ a => 1, b => 2 ]   // Data
+	[ "a" => 1, "b" => 2 ]   // Data
 );
 // 1
 ```
@@ -86,7 +86,7 @@ If you like, we support [syntactic sugar](https://en.wikipedia.org/wiki/Syntacti
 ```php
 JWadhams\JsonLogic::apply(
 	[ "var" => "a" ],
-	[ a => 1, b => 2 ]
+	[ "a" => 1, "b" => 2 ]
 );
 // 1
 ```
