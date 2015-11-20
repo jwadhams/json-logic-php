@@ -104,5 +104,27 @@ class JsonLogic
 
 		return call_user_func_array($operators[$op], $values);
     }
+
+	public static function uses_data($logic){
+		if(is_object($logic)) $logic = (array)$logic;
+		$collection = [];
+
+		if( self::is_logic($logic) ){
+			$op = array_keys($logic)[0];
+			$values = (array)$logic[$op];
+
+			if($op === "var"){
+				//This doesn't cover the case where the arg to var is itself a rule.
+				$collection[] = $values[0];
+			}else{
+				//Recursion!
+				foreach($values as $value){
+					$collection = array_merge($collection, self::uses_data($value));
+				}
+			}
+		}
+
+		return array_unique($collection);
+	}
 }
 
