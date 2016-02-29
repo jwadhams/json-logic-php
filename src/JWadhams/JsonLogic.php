@@ -45,13 +45,14 @@ class JsonLogic
 					( ( $a <= $b ) and ( $b <= $c ) ) ;
 			},
 			'%' => function($a, $b){ return $a % $b; },
-			'!' => function($a){ return !$a; },
+			'!!' => function($a){ return static::truthy($a); },
+			'!' => function($a){ return ! static::truthy($a); },
 			'and' => function(){
-				foreach(func_get_args() as $a){ if( ! $a) return $a; }
+				foreach(func_get_args() as $a){ if( ! static::truthy($a) ) return $a; }
 				return $a;
 			},
 			'or' => function(){
-				foreach(func_get_args() as $a){ if($a) return $a; }
+				foreach(func_get_args() as $a){ if( static::truthy($a) ) return $a; }
 				return $a;
 			},
 			'log' => function($a){ error_log($a); return $a; },
