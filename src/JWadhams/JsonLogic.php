@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace JWadhams;
 
@@ -34,13 +34,13 @@ class JsonLogic
 			'!==' => function($a, $b){ return $a !== $b; },
 			'>' => function($a, $b){ return $a > $b; },
 			'>=' => function($a, $b){ return $a >= $b; },
-			'<' => function($a, $b, $c = null){ 
-				return ($c === null) ? 
-					( $a < $b ) : 
+			'<' => function($a, $b, $c = null){
+				return ($c === null) ?
+					( $a < $b ) :
 					( ( $a < $b ) and ( $b < $c ) ) ;
 			},
-			'<=' => function($a, $b, $c = null){ 
-				return ($c === null) ? 
+			'<=' => function($a, $b, $c = null){
+				return ($c === null) ?
 					( $a <= $b ) :
 					( ( $a <= $b ) and ( $b <= $c ) ) ;
 			},
@@ -56,7 +56,7 @@ class JsonLogic
 				return $a;
 			},
 			'log' => function($a){ error_log($a); return $a; },
-			'var' => function($a, $default = null) use ($data){ 
+			'var' => function($a, $default = null) use ($data){
 				//Descending into data using dot-notation
 				//This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
 				foreach(explode('.', $a) as $prop){
@@ -76,7 +76,7 @@ class JsonLogic
 				/*
 					Missing can receive many keys as many arguments, like {"missing:[1,2]}
 					Missing can also receive *one* argument that is an array of keys,
-					which typically happens if it's actually acting on the output of another command 
+					which typically happens if it's actually acting on the output of another command
 					(like IF or MERGE)
 				*/
 				$values = func_get_args();
@@ -86,11 +86,12 @@ class JsonLogic
 
 				$missing = [];
 				foreach($values as $data_key){
-					if(static::apply(['var'=>$data_key], $data) === null){
+					$value = static::apply(['var'=>$data_key], $data);
+					if($value === null or $value === ""){
 						array_push($missing, $data_key);
 					}
 				}
-				
+
 				return $missing;
 			},
 			'in' => function($a, $b){
@@ -107,12 +108,12 @@ class JsonLogic
 			'-' => function($a,$b=null){ if($b===null){return -$a;}else{return $a - $b;} },
 			'/' => function($a,$b){ return $a / $b; },
 			'*' => function(){
-				return array_reduce(func_get_args(), function($a, $b){ return $a*$b; }, 1); 
+				return array_reduce(func_get_args(), function($a, $b){ return $a*$b; }, 1);
 			},
 			'merge' => function(){
-				return array_reduce(func_get_args(), function($a, $b){ 
-					return array_merge((array)$a, (array)$b); 
-				}, []); 
+				return array_reduce(func_get_args(), function($a, $b){
+					return array_merge((array)$a, (array)$b);
+				}, []);
 			}
 		];
 
@@ -122,7 +123,7 @@ class JsonLogic
 
 		//easy syntax for unary operators, like ["var" => "x"] instead of strict ["var" => ["x"]]
 		if(!is_array($values) or static::is_logic($values)){
-			$values = [ $values ]; 
+			$values = [ $values ];
 		}
 
 		// 'if' violates the normal rule of depth-first calculating all the values,
@@ -185,4 +186,3 @@ class JsonLogic
 		return array_unique($collection);
 	}
 }
-
