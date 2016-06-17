@@ -5,13 +5,27 @@ namespace JWadhams;
 class JsonLogic
 {
 
+	public static function get_operator($logic){
+		return array_keys($logic)[0];
+	}
+	public static function get_values($logic){
+		$op = static::get_operator($logic);
+		$values = $logic[$op];
+
+		//easy syntax for unary operators, like ["var" => "x"] instead of strict ["var" => ["x"]]
+		if(!is_array($values) or static::is_logic($values)){
+			$values = [ $values ];
+		}
+		return $values;
+	}
+
 	public static function is_logic($array) {
 		return (
 			is_array($array)
 			and
 			count($array) > 0
 			and
-			is_string(array_keys($array)[0])
+			is_string( static::get_operator($array) )
 		);
 	}
 
@@ -118,13 +132,8 @@ class JsonLogic
 		];
 
 		//There can be only one operand per logic step
-		$op = array_keys($logic)[0];
-		$values = $logic[$op];
-
-		//easy syntax for unary operators, like ["var" => "x"] instead of strict ["var" => ["x"]]
-		if(!is_array($values) or static::is_logic($values)){
-			$values = [ $values ];
-		}
+		$op = static::get_operator($logic);
+		$values = static::get_values($logic);
 
 		// 'if' violates the normal rule of depth-first calculating all the values,
 		//let it manage its own recusrion
