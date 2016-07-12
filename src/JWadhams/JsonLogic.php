@@ -108,6 +108,14 @@ class JsonLogic
 
 				return $missing;
 			},
+			'missing_some' => function($minimum, $options) use ($data){
+				$are_missing = static::apply(['missing'=>$options], $data);
+				if(count($options) - count($are_missing) >= $minimum){
+					return [];
+				}else{
+					return $are_missing;
+				}
+			},
 			'in' => function($a, $b){
 				if(is_array($b)) return in_array($a, $b);
 				if(is_string($b)) return strpos($b, $a) !== false;
