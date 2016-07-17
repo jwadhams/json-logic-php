@@ -99,6 +99,34 @@ class JsonLogic
 				if(is_string($b)) return strpos($b, $a) !== false;
 				return false;
 			},
+			'key_exists' => function($a, $b){
+				if (array_key_exists($a, $b)) return true;
+				return false;
+			},
+			'max_array' => function($a){
+				if(is_array($a)) return max($a);
+				return false;
+			},
+			'min_array' => function($a){
+				if(is_array($a)) return min($a);
+				return false;
+			},
+			'add_array' => function($a){
+				if(is_array($a)) return array_sum($a);
+				return false;
+			},
+			'compare_array' => function($a, $b){
+				if(!is_array($a) || !is_array($b)) return false;
+				if($a === $b) return true;
+				return false;
+			},
+			'compare_array_slice' => function($a, $b){
+				if(!is_array($a) || !is_array($b)) return false;
+				$length = count($a);
+				$slice = array_slice($b, 0, $length);
+				if($a === $slice) return true;
+				return false;
+			},
 			'cat' => function(){
 				return implode(func_get_args(), "");
 			},
