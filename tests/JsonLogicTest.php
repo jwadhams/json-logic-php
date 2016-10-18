@@ -17,7 +17,7 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 	{
 		// Assert
 		$this->assertEquals(
-			$expected, 
+			$expected,
 			JWadhams\JsonLogic::apply($logic, $data),
 			"JsonLogic::apply(".json_encode($logic).", ".json_encode($data).") == ".json_encode($expected)
 		);
@@ -35,7 +35,7 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 			echo "Using cached tests from " . @ date('r', filemtime($local_path)) ."\n";
 			echo "(rm {$local_path} to refresh)\n";
 		}
-		
+
 		$body = file_get_contents($local_path);
 
 		//Every scenario is double tested
@@ -50,5 +50,53 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 
 		return $common_tests;
 	}
+
+	public function patternProvider(){
+		$local_path = __DIR__ . '/patterns.json';
+		$patterns = json_decode(file_get_contents($local_path), true);
+		$patterns = array_filter($patterns, function($row){
+			//Discard comments or malformed rows
+			return is_array($row) and count($row) == 3;
+		});
+		return $patterns;
+	}
+	/**
+	 * @dataProvider patternProvider
+	 */
+	public function testPattern($pattern, $rule, $expected)
+	{
+		// Assert
+		$this->assertEquals(
+			$expected,
+			JWadhams\JsonLogic::rule_like($rule, $pattern),
+			"JsonLogic::rule_like(".json_encode($rule).", ".json_encode($pattern).") == ".json_encode($expected)
+		);
+	}
+
+	/* Snappy way to test just one rule when you need to pepper in some echos into the code*/
+	public function testProblematicPattern(){
+		$raw = <<<JSON
+		[
+			{"*":["number", {"+":"array"}]},
+			{"*" : [0.01, {"+":[{"var":"goods"}, {"var":"services"}]}]},
+			true
+		],
+
+
+JSON;
+		$raw = preg_replace('#,$#', '', trim($raw) );//Drop trailing commas
+
+		if(!json_decode($raw)){
+			throw new Exception("Couldn't parse problematic pattern");
+		}
+		list($pattern, $rule, $expected) = json_decode($raw, true);
+		$this->assertEquals(
+			$expected,
+			JWadhams\JsonLogic::rule_like($rule, $pattern),
+			"JsonLogic::rule_like(".json_encode($rule).", ".json_encode($pattern).") == ".json_encode($expected)
+		);
+
+	}
+
 
 }

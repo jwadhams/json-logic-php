@@ -8,12 +8,12 @@ class JsonLogic
 	public static function get_operator($logic){
 		return array_keys($logic)[0];
 	}
-	public static function get_values($logic){
+	public static function get_values($logic, $fix_unary = true){
 		$op = static::get_operator($logic);
 		$values = $logic[$op];
 
 		//easy syntax for unary operators, like ["var" => "x"] instead of strict ["var" => ["x"]]
-		if(!is_array($values) or static::is_logic($values)){
+		if($fix_unary and (!is_array($values) or static::is_logic($values)) ){
 			$values = [ $values ];
 		}
 		return $values;
@@ -202,4 +202,55 @@ class JsonLogic
 
 		return array_unique($collection);
 	}
+
+
+	public static function rule_like ($rule, $pattern){
+		//echo "\nIs ". json_encode($rule) . " like " . json_encode($pattern) . "?\n";
+	  if($pattern === $rule){ return true; } //TODO : Deep object equivalency?
+	  if($pattern === "@"){ return true; } //Wildcard!
+	  if($pattern === "number"){ return is_numeric($rule); }
+	  if($pattern === "string"){ return is_string($rule); }
+	  if($pattern === "array"){ return is_array($rule) and ! static::is_logic($rule); }
+
+	  if(static::is_logic($pattern)){
+	    if(static::is_logic($rule)){
+	      $pattern_op = static::get_operator($pattern);
+        $rule_op = static::get_operator($rule);
+
+	      if($pattern_op === "@" || $pattern_op === $rule_op){
+					//echo "\nOperators match, go deeper\n";
+	        return static::rule_like(
+						static::get_values($rule, false),
+						static::get_values($pattern, false)
+					);
+	      }
+
+	    }
+	    return false; //$pattern is logic, rule isn't, can't be eq
+	  }
+
+	  if(is_array($pattern)){
+	    if(is_array($rule)){
+	      if(count($pattern) !== count($rule)){ return false; }
+				/*
+					Note, array order MATTERS, because we're using this array test logic to consider arguments, where order can matter. (e.g., + is commutative, but '-' or 'if' or 'var' are NOT)
+
+				*/
+	      for( $i = 0 ; $i < count($pattern) ; $i += 1){
+	        //If any fail, we fail
+	        if( ! static::rule_like($rule[$i], $pattern[$i])){ return false; }
+	      }
+	      return true; //If they *all* passed, we pass
+	    }else{
+	      return false; //Pattern is array, rule isn't
+	    }
+
+	  }
+
+		//Not logic, not array, not a === match for rule.
+		return false;
+	}
+
+
+
 }
