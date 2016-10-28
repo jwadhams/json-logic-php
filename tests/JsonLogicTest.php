@@ -98,5 +98,54 @@ JSON;
 
 	}
 
+	public function testAddOperation(){
+		//Set up some outside data
+		$a = 0;
+		// build a function operator that uses outside data by reference
+		$add_to_a = function($b=1)use(&$a){ $a += $b; return $a; };
+		JWadhams\JsonLogic::add_operation("add_to_a", $add_to_a);
+		//New operation executes, returns desired result
+		//No args
+		$this->assertEquals( 1, JWadhams\JsonLogic::apply(["add_to_a" => []]) );
+		$this->assertEquals(1, $a, "Yay, side effects!");
+		//Unary syntactic sugar
+		$this->assertEquals( 42, JWadhams\JsonLogic::apply(["add_to_a" => 41]) );
+		//New operation had side effects.
+		$this->assertEquals(42, $a, "Yay, side effects!");
+
+		//Calling a method with multiple var as arguments.
+		JWadhams\JsonLogic::add_operation("times", function($a,$b){ return $a*$b; });
+		$this->assertEquals(
+			JWadhams\JsonLogic::apply(
+				["times" => [["var"=>"a"], ["var"=>"b"]]],
+				['a'=>6,'b'=>7]
+			),
+			42
+		);
+
+		//Calling a method that takes an array, but the inside of the array has rules, too
+		JWadhams\JsonLogic::add_operation("array_times", function($a){ return $a[0] * $a[1]; });
+		$this->assertEquals(
+			JWadhams\JsonLogic::apply(
+				["array_times" => [[["var"=>"a"], ["var"=>"b"]]] ],
+				['a'=>6,'b'=>7]
+			),
+			42
+		);
+
+		//Turning a language built-in function into an operation
+		JWadhams\JsonLogic::add_operation("sqrt", 'sqrt');
+		$this->assertEquals( 42, JWadhams\JsonLogic::apply(["sqrt" => 1764]), "sqrt(1764)" );
+
+		//Turning a static method into an operation
+		JWadhams\JsonLogic::add_operation("date_from_format", 'DateTime::createFromFormat');
+		$this->assertEquals(
+			new DateTime("1979-09-16 00:00:00"),
+			JWadhams\JsonLogic::apply(["date_from_format" => ['Y-m-d h:i:s', '1979-09-16 00:00:00']]),
+			"make a date"
+		);
+
+	}
+
 
 }

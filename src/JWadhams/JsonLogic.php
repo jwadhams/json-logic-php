@@ -5,6 +5,7 @@ namespace JWadhams;
 class JsonLogic
 {
 
+	private static $custom_operations = [];
 	public static function get_operator($logic){
 		return array_keys($logic)[0];
 	}
@@ -39,7 +40,16 @@ class JsonLogic
 		if(is_object($logic)) $logic = (array)$logic;
 		if(is_object($data)) $data = (array)$data;
 
-		if(! self::is_logic($logic) ){ return $logic; }
+		if( ! self::is_logic($logic) ){
+			if(is_array($logic)){
+				//Could be an array of logic statements. Only one way to find out.
+				return array_map(function($l) use ($data){
+					return self::apply($l, $data);
+				}, $logic);
+			}else{
+				return $logic;
+			}
+		}
 
 		$operators = [
 			'==' => function($a, $b){ return $a == $b; },
@@ -168,17 +178,20 @@ class JsonLogic
 			return null;
 		}
 
+		if(isset(self::$custom_operations[$op])){
+			$operation = self::$custom_operations[$op];
+		}elseif(isset($operators[$op])){
+			$operation = $operators[$op];
+		}else{
+			throw new \Exception("Unrecognized operator $op");
+		}
 
 		//Recursion!
 		$values = array_map(function($value) use ($data){
 			return self::apply($value, $data);
 		}, $values);
 
-		if(!isset($operators[$op])){
-			throw new \Exception("Unrecognized operator $op");
-		}
-
-		return call_user_func_array($operators[$op], $values);
+		return call_user_func_array($operation, $values);
 	}
 
 	public static function uses_data($logic){
@@ -251,6 +264,8 @@ class JsonLogic
 		return false;
 	}
 
-
+	public static function add_operation($name, $callable){
+		self::$custom_operations[$name] = $callable;
+	}
 
 }
