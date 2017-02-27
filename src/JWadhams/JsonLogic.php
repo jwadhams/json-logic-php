@@ -218,6 +218,10 @@ class JsonLogic
 
 
 	public static function rule_like ($rule, $pattern){
+		if(is_string($pattern) and $pattern{0} === '{'){
+			$pattern = json_decode($pattern, true);
+		}
+
 		//echo "\nIs ". json_encode($rule) . " like " . json_encode($pattern) . "?\n";
 	  if($pattern === $rule){ return true; } //TODO : Deep object equivalency?
 	  if($pattern === "@"){ return true; } //Wildcard!
