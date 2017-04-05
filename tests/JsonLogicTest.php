@@ -29,10 +29,10 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 		$local_path = __DIR__ . '/tests.json';
 
 		if( ! file_exists($local_path)){
-			echo "Downloading shared tests from JsonLogic.com ...\n";
+			echo "Downloading shared apply() tests from JsonLogic.com ...\n";
 			file_put_contents($local_path, fopen("http://jsonlogic.com/tests.json", 'r'));
 		}else{
-			echo "Using cached tests from " . @ date('r', filemtime($local_path)) ."\n";
+			echo "Using cached apply() tests from " . @ date('r', filemtime($local_path)) ."\n";
 			echo "(rm {$local_path} to refresh)\n";
 		}
 
@@ -52,7 +52,16 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 	}
 
 	public function patternProvider(){
-		$local_path = __DIR__ . '/patterns.json';
+		$local_path = __DIR__ . '/rule_like.json';
+
+		if( ! file_exists($local_path)){
+			echo "Downloading shared rule_like() tests from JsonLogic.com ...\n";
+			file_put_contents($local_path, fopen("http://jsonlogic.com/rule_like.json", 'r'));
+		}else{
+			echo "Using cached rule_like() tests from " . @ date('r', filemtime($local_path)) ."\n";
+			echo "(rm {$local_path} to refresh)\n";
+		}
+
 		$patterns = json_decode(file_get_contents($local_path), true);
 		$patterns = array_filter($patterns, function($row){
 			//Discard comments or malformed rows

@@ -1,2 +1,2 @@
 /vendor/
-/tests/tests.json
+/tests/*.json
