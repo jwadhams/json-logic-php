@@ -72,7 +72,7 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 	/**
 	 * @dataProvider patternProvider
 	 */
-	public function testPattern($pattern, $rule, $expected)
+	public function testPattern($rule, $pattern, $expected)
 	{
 		// Assert
 		$this->assertEquals(
