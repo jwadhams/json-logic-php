@@ -272,4 +272,52 @@ class JsonLogic
 		self::$custom_operations[$name] = $callable;
 	}
 
+
+	public static function toSQL($logic) {
+		if (!is_array($logic)) {
+			return $logic;
+		}
+
+		$operators = [
+			'==' => function ($a, $b) {
+				return '(' . (string)$a . ' == ' . (string)$b . ')';
+			},
+			'>' => function ($a, $b) {
+				return '(' . (string)$a . ' > ' . (string)$b . ')';
+			},
+			'and' => function () {
+				return '(' . implode(' AND ', func_get_args()) . ')';
+			},
+			'+' => function () {
+				return '(' . implode(' + ', func_get_args()) . ')';
+			},
+			'or' => function () {
+				return '(' . implode(' OR ', func_get_args()) . ')';
+			},
+			'var' => function ($a) {
+				return (string)$a;
+			}
+		];
+
+		$op = self::get_operator($logic);
+		$values = self::get_values($logic);
+
+		if (isset($operators[$op])) {
+			$operation = $operators[$op];
+		} else {
+			throw new \Exception("Unrecognized operator $op");
+		}
+
+		$values = array_map(function ($value) use ($op) {
+			// add quotes to non-var string values
+			if ($op != 'var' and is_string($value)) {
+				$value = '\'' . $value . '\'';
+			}
+			return self::toSQL($value);
+		}, $values);
+		$result = call_user_func_array($operation, $values);
+
+		return $result;
+	}
+
 }
