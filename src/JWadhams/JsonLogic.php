@@ -24,7 +24,7 @@ class JsonLogic
 		return (
 			is_array($array)
 			and
-			count($array) > 0
+      count($array) === 1
 			and
 			is_string( static::get_operator($array) )
 		);
@@ -80,7 +80,8 @@ class JsonLogic
 				return $a;
 			},
 			'log' => function($a){ error_log($a); return $a; },
-			'var' => function($a, $default = null) use ($data){
+			'var' => function($a = null, $default = null) use ($data){
+        if($a === null or $a === ""){ return $data; }
 				//Descending into data using dot-notation
 				//This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
 				foreach(explode('.', $a) as $prop){
@@ -153,6 +154,12 @@ class JsonLogic
 		$op = static::get_operator($logic);
 		$values = static::get_values($logic);
 
+    /**
+     * Most rules need depth-first recursion. These rules need to manage their
+     * own recursion. e.g., if you've added an operator with side-effects
+     * you only want `if` to execute the minimum conditions and exactly one
+     * consequent.
+     */
 		// 'if' violates the normal rule of depth-first calculating all the values,
 		//let it manage its own recusrion
 		if($op === 'if' || $op == '?:'){
@@ -176,7 +183,39 @@ class JsonLogic
 			}
 			if(count($values) === $i+1) return static::apply($values[$i], $data);
 			return null;
-		}
+
+    }elseif($op === "all") {
+      $scopedData = static::apply($values[0], $data);
+      $scopedLogic = $values[1];
+      // All of an empty set is false. Note, some and none have correct fallback after the for loop
+      if(!$scopedData) {
+        return false;
+      }
+      foreach($scopedData as $datum){
+        if( ! static::truthy( static::apply($scopedLogic, $datum) )) {
+          return false; // First falsy, short circuit
+        }
+      }
+      return true; // All were truthy
+    }else if($op === "none") {
+      $scopedData = static::apply($values[0], $data);
+      $scopedLogic = $values[1];
+      foreach($scopedData as $datum){
+        if(static::truthy( static::apply($scopedLogic, $datum) )) {
+          return false; // First truthy, short circuit
+        }
+      }
+      return true; // All were falsy
+    }else if($op === "some") {
+      $scopedData = static::apply($values[0], $data);
+      $scopedLogic = $values[1];
+      foreach($scopedData as $datum){
+        if(static::truthy( static::apply($scopedLogic, $datum) )) {
+          return true; // First truthy, short circuit
+        }
+      }
+      return false; // None were truthy
+    }
 
 		if(isset(self::$custom_operations[$op])){
 			$operation = self::$custom_operations[$op];
