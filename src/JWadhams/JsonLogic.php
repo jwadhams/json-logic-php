@@ -86,8 +86,13 @@ class JsonLogic
 				//This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
 				foreach(explode('.', $a) as $prop){
 					if(is_array($data)){
-						if(!isset($data[$prop])) return $default; //Not found
-						$data = $data[$prop];
+            if (isset($data[$prop])) {
+              $data = $data[$prop];
+            } elseif ($prop === 'length') {
+              $data = count($data);
+            } else {
+              return $default;
+            }
 					}elseif(is_object($data)){
 						if(!property_exists($data,$prop)) return $default; //Not found
 						$data = $data->{$prop};
