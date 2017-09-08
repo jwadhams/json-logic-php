@@ -38,6 +38,13 @@ class JsonLogicTest extends PHPUnit_Framework_TestCase{
 
 		$body = file_get_contents($local_path);
 
+		$test_as_objects = json_decode($body);
+		$test_as_associative = json_decode($body, true);
+
+		if($test_as_objects === null or $test_as_associative === null){
+			die("Could not parse tests.json!");
+		}
+
 		//Every scenario is double tested
 		$common_tests = array_merge(
 				json_decode($body),//once using PHP objects
