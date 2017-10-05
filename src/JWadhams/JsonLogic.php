@@ -214,6 +214,9 @@ class JsonLogic
                 return array_reduce(func_get_args(), function ($a, $b) {
                     return array_merge((array)$a, (array)$b);
                 }, []);
+            },
+            'substr' => function (){
+                return call_user_func_array('substr', func_get_args());
             }
         ];
 
