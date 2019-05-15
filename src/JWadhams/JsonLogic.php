@@ -128,15 +128,9 @@ class JsonLogic
                 //Descending into data using dot-notation
                 //This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
                 foreach (explode('.', $a) as $prop) {
-                    if (is_array($data)) {
-                        if (!isset($data[$prop])) {
-                            return $default;
-                        } //Not found
+                    if (is_array($data) && isset($data[$prop])) {
                         $data = $data[$prop];
-                    } elseif (is_object($data)) {
-                        if (!property_exists($data, $prop)) {
-                            return $default;
-                        } //Not found
+                    } elseif (is_object($data) && isset($data->{$prop})) {
                         $data = $data->{$prop};
                     } else {
                         return $default; //Trying to get a value from a primitive
@@ -215,7 +209,7 @@ class JsonLogic
                     return array_merge((array)$a, (array)$b);
                 }, []);
             },
-            'substr' => function (){
+            'substr' => function () {
                 return call_user_func_array('substr', func_get_args());
             }
         ];
