@@ -178,7 +178,7 @@ class JsonLogic
                 return false;
             },
             'cat' => function () {
-                return implode(func_get_args(), "");
+                return implode("", func_get_args());
             },
             'max' => function () {
                 return max(func_get_args());
@@ -358,7 +358,7 @@ class JsonLogic
 
     public static function rule_like($rule, $pattern)
     {
-        if (is_string($pattern) and $pattern{0} === '{') {
+        if (is_string($pattern) and $pattern[0] === '{') {
             $pattern = json_decode($pattern, true);
         }
 
