@@ -1,62 +1,61 @@
 <?php
 /**
- * Test that JsonLogic makes smart decisions on PHP objects that use "magic" properties
+ * Test that JsonLogic makes smart decisions on PHP objects that use array accessors.
+ * e.g. Laravel Collections
  */
  declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use JWadhams\JsonLogic;
 
-class MagicPropertiesTest extends TestCase
+class ObjectWithArrayAccessorsTest extends TestCase
 {
-    private function getMagicalObject()
+    private function getArrayAccessibleObject()
     {
-        return new class {
-            public function __get($key)
+        return new class implements ArrayAccess{
+            public $property = 'object-ish';
+
+            public function offsetExists ($offset)
             {
-                return "magic";
+                return $offset === 'defined';
             }
-            public function __isset($key)
+            public function offsetGet ($offset)
             {
-                return $key === "defined";
+                return 'array-ish';
             }
-            public function method()
+            public function offsetSet ($offset, $value)
             {
-                return "I am not a property!";
+                throw new Exception("Required by ArrayAccess interface, unusable by JsonLogic");
+            }
+            public function offsetUnset ($offset)
+            {
+                throw new Exception("Required by ArrayAccess interface, unusable by JsonLogic");
             }
         };
     }
 
-    public function testValidMagicWorks()
+    public function testValidArrayAccessWorks()
     {
-        $object = $this->getMagicalObject();
-        $rule = ['var'=>'object.defined'];
-        $data = ['object' => $object];
-        $this->assertEquals('magic', JsonLogic::apply($rule, $data));
+        $object = $this->getArrayAccessibleObject();
+        $rule = ['var'=>['defined', 'default']];
+        $this->assertEquals('array-ish', $object['defined']);
+        $this->assertEquals('array-ish', JsonLogic::apply($rule, $object));
     }
 
-    public function testMixtureOfRealPropertiesAndMagicWorks()
+    public function testInvalidArrayAccessReturnsDefault()
     {
-        $object = $this->getMagicalObject();
-        $rule = ['var'=>'object.defined'];
-        $data = new stdClass();
-        $data->object = $object;
-        $this->assertEquals('magic', JsonLogic::apply($rule, $data));
+        $object = $this->getArrayAccessibleObject();
+        $rule = ['var'=>['undefined', 'default']];
+        $this->assertFalse(isset($object['undefined']));
+        $this->assertEquals('default', JsonLogic::apply($rule, $object));
     }
 
-    public function testInvalidMagicReturnsDefault()
+    public function testCanMixPropertiesAndArrayAccess()
     {
-        $object = $this->getMagicalObject();
-        $rule = ['var'=>['object.undefined', 'default']];
-        $data = ['object' => $object];
-        $this->assertEquals('default', JsonLogic::apply($rule, $data));
-    }
-
-    public function testMethodsShouldReturnDefault()
-    {
-        $object = $this->getMagicalObject();
-        $rule = ['var'=>['object.method', 'default']];
-        $data = ['object' => $object];
-        $this->assertEquals('default', JsonLogic::apply($rule, $data));
+        $object = $this->getArrayAccessibleObject();
+        $rule = ['var'=>['property', 'default']];
+        $this->assertFalse(isset($object['property']));
+        $this->assertEquals('object-ish', $object->property);
+        $this->assertEquals('object-ish', JsonLogic::apply($rule, $object));
     }
 }

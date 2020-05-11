@@ -46,9 +46,6 @@ class JsonLogic
         if (is_object($logic)) {
             $logic = (array)$logic;
         }
-        if (is_object($data)) {
-            $data = (array)$data;
-        }
 
         if (! self::is_logic($logic)) {
             if (is_array($logic)) {
@@ -128,9 +125,9 @@ class JsonLogic
                 //Descending into data using dot-notation
                 //This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
                 foreach (explode('.', $a) as $prop) {
-                    if (is_array($data) && isset($data[$prop])) {
+                    if ((is_array($data) || $data instanceof \ArrayAccess) && isset($data[$prop])) {
                         $data = $data[$prop];
-                    } elseif (is_object($data) && isset($data->{$prop})) {
+                    } elseif (isset($data->{$prop})) {
                         $data = $data->{$prop};
                     } else {
                         return $default; //Trying to get a value from a primitive
