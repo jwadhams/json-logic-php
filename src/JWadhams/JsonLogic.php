@@ -127,7 +127,7 @@ class JsonLogic
                 foreach (explode('.', $a) as $prop) {
                     if ((is_array($data) || $data instanceof \ArrayAccess) && isset($data[$prop])) {
                         $data = $data[$prop];
-                    } elseif (isset($data->{$prop})) {
+                    } elseif (is_object($data) && isset($data->{$prop})) {
                         $data = $data->{$prop};
                     } else {
                         return $default; //Trying to get a value from a primitive
