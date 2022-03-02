@@ -98,22 +98,6 @@ class JsonLogic
             '!' => function ($a) {
                 return ! static::truthy($a);
             },
-            'and' => function () {
-                foreach (func_get_args() as $a) {
-                    if (! static::truthy($a)) {
-                        return $a;
-                    }
-                }
-                return $a;
-            },
-            'or' => function () {
-                foreach (func_get_args() as $a) {
-                    if (static::truthy($a)) {
-                        return $a;
-                    }
-                }
-                return $a;
-            },
             'log' => function ($a) {
                 error_log($a);
                 return $a;
@@ -244,6 +228,28 @@ class JsonLogic
                 return static::apply($values[$i], $data);
             }
             return null;
+        } elseif ($op === 'and') {
+            // Return the first falsy value, or the last value
+            // we don't even *evaluate* values after the first falsy (short-circuit)
+            foreach ($values as $value) {
+                $current = static::apply($value, $data);
+                if ( ! static::truthy($current)) {
+                    return $current;
+                }
+            }
+            return $current; // Last
+
+        } elseif ($op === 'or') {
+            // Return the first truthy value, or the last value
+            // we don't even *evaluate* values after the first truthy (short-circuit)
+            foreach ($values as $value) {
+                $current = static::apply($value, $data);
+                if (static::truthy($current)) {
+                    return $current;
+                }
+            }
+            return $current; // Last
+
         } elseif ($op === "filter") {
             $scopedData = static::apply($values[0], $data);
             $scopedLogic = $values[1];
