@@ -4,12 +4,9 @@ use PHPUnit\Framework\TestCase;
 
 class JsonLogicTest extends TestCase
 {
-
-    /**
-     * @expectedException Exception
-     */
     public function testInvalidOperator()
     {
+        $this->expectExceptionMessage('Unrecognized operator fubar');
         JWadhams\JsonLogic::apply(['fubar'=> [1,2]]);
     }
 

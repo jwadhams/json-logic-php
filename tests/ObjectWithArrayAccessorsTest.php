@@ -15,19 +15,19 @@ class ObjectWithArrayAccessorsTest extends TestCase
         return new class implements ArrayAccess{
             public $property = 'object-ish';
 
-            public function offsetExists ($offset)
+            public function offsetExists (mixed $offset): bool
             {
                 return $offset === 'defined';
             }
-            public function offsetGet ($offset)
+            public function offsetGet (mixed $offset): mixed
             {
                 return 'array-ish';
             }
-            public function offsetSet ($offset, $value)
+            public function offsetSet (mixed $offset, mixed $value): void
             {
                 throw new Exception("Required by ArrayAccess interface, unusable by JsonLogic");
             }
-            public function offsetUnset ($offset)
+            public function offsetUnset (mixed $offset): void
             {
                 throw new Exception("Required by ArrayAccess interface, unusable by JsonLogic");
             }
