@@ -113,6 +113,8 @@ class JsonLogic
                         $data = $data[$prop];
                     } elseif (is_object($data) && isset($data->{$prop})) {
                         $data = $data->{$prop};
+                    } elseif (is_callable($data)) {
+                        return $data($prop); //Trying to get a value from a callback
                     } else {
                         return $default; //Trying to get a value from a primitive
                     }
