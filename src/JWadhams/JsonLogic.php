@@ -121,6 +121,23 @@ class JsonLogic
                 }
                 return $data;
             },
+            'var_static' => function ($a = null, $default = null) use ($data) {
+                if ($a === null or $a === "") {
+                    return $data;
+                }
+
+                if ((is_array($data) || $data instanceof \ArrayAccess) && isset($data[$a])) {
+                    $data = $data[$a];
+                } elseif (is_object($data) && isset($data->{$a})) {
+                    $data = $data->{$a};
+                } elseif (is_callable($data)) {
+                    return $data($a); //Trying to get a value from a callback
+                } else {
+                    return $default; //Trying to get a value from a primitive
+                }
+
+                return $data;
+            },
             'missing' => function () use ($data) {
                 /*
                 Missing can receive many keys as many arguments, like {"missing:[1,2]}
