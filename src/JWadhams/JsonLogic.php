@@ -121,22 +121,8 @@ class JsonLogic
                 }
                 return $data;
             },
-            'var_static' => function ($a = null, $default = null) use ($data) {
-                if ($a === null or $a === "") {
-                    return $data;
-                }
-
-                if ((is_array($data) || $data instanceof \ArrayAccess) && isset($data[$a])) {
-                    $data = $data[$a];
-                } elseif (is_object($data) && isset($data->{$a})) {
-                    $data = $data->{$a};
-                } elseif (is_callable($data)) {
-                    return $data($a); //Trying to get a value from a callback
-                } else {
-                    return $default; //Trying to get a value from a primitive
-                }
-
-                return $data;
+            'var_static' => function ($a = null) use ($data) {
+                return $data($a);
             },
             'missing' => function () use ($data) {
                 /*
@@ -348,6 +334,10 @@ class JsonLogic
         $values = array_map(function ($value) use ($data) {
             return self::apply($value, $data);
         }, $values);
+
+        if ($op === 'var_static') {
+            $values = [(object)$values];
+        }
 
         return call_user_func_array($operation, $values);
     }
