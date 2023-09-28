@@ -5,6 +5,10 @@ namespace JWadhams;
 class JsonLogic
 {
     private static $custom_operations = [];
+
+    private static $variables = null;
+    private static $iteration_variable = null;
+
     public static function get_operator($logic)
     {
         return array_keys($logic)[0];
@@ -40,18 +44,21 @@ class JsonLogic
         return (bool)$logic;
     }
 
-    public static function apply($logic = [], $data = [])
+    public static function apply($logic = [], $data = [], $rewrite = true)
     {
+        if ($rewrite) static::$variables = $data;
         //I'd rather work with array syntax
         if (is_object($logic)) {
             $logic = (array)$logic;
         }
 
         if (! self::is_logic($logic)) {
+            if ($logic === '$var' || (is_array($logic) && isset($logic[0]) && $logic[0] === '$var')) return static::apply(['var' => true], static::$variables, false);
+            if ($logic === '$iteration' || (is_array($logic) && isset($logic[0]) && $logic[0] === '$iteration')) return static::apply(['var' => null], static::$iteration_variable, false);
             if (is_array($logic)) {
                 //Could be an array of logic statements. Only one way to find out.
                 return array_map(function ($l) use ($data) {
-                    return self::apply($l, $data);
+                    return self::apply($l, $data, false);
                 }, $logic);
             } else {
                 return $logic;
@@ -103,7 +110,10 @@ class JsonLogic
                 return $a;
             },
             'var' => function ($a = null, $default = null) use ($data) {
-                if ($a === null or $a === "") {
+                if (empty($a)) {
+                    if (is_callable($data)) {
+                        return $data();
+                    }
                     return $data;
                 }
                 //Descending into data using dot-notation
@@ -121,8 +131,11 @@ class JsonLogic
                 }
                 return $data;
             },
-            'var_static' => function ($a = null) use ($data) {
-                return $data($a);
+            '$var' => function ($a = null, $default = null) use ($data) {
+                return static::apply(['var' => [$a, $default]], static::$variables, false);
+            },
+            '$iteration' => function ($a = null, $default = null) {
+                return static::apply(['var' => [$a, $default]], static::$iteration_variable, false);
             },
             'missing' => function () use ($data) {
                 /*
@@ -138,7 +151,7 @@ class JsonLogic
 
                 $missing = [];
                 foreach ($values as $data_key) {
-                    $value = static::apply(['var'=>$data_key], $data);
+                    $value = static::apply(['var'=>$data_key], $data, false);
                     if ($value === null or $value === "") {
                         array_push($missing, $data_key);
                     }
@@ -147,7 +160,7 @@ class JsonLogic
                 return $missing;
             },
             'missing_some' => function ($minimum, $options) use ($data) {
-                $are_missing = static::apply(['missing'=>$options], $data);
+                $are_missing = static::apply(['missing'=>$options], $data, false);
                 if (count($options) - count($are_missing) >= $minimum) {
                     return [];
                 } else {
@@ -225,19 +238,19 @@ class JsonLogic
             given 0 parameters, return NULL (not great practice, but there was no Else)
             */
             for ($i = 0 ; $i < count($values) - 1 ; $i += 2) {
-                if (static::truthy(static::apply($values[$i], $data))) {
-                    return static::apply($values[$i+1], $data);
+                if (static::truthy(static::apply($values[$i], $data, false))) {
+                    return static::apply($values[$i+1], $data, false);
                 }
             }
             if (count($values) === $i+1) {
-                return static::apply($values[$i], $data);
+                return static::apply($values[$i], $data, false);
             }
             return null;
         } elseif ($op === 'and') {
             // Return the first falsy value, or the last value
             // we don't even *evaluate* values after the first falsy (short-circuit)
             foreach ($values as $value) {
-                $current = static::apply($value, $data);
+                $current = static::apply($value, $data, false);
                 if ( ! static::truthy($current)) {
                     return $current;
                 }
@@ -248,7 +261,7 @@ class JsonLogic
             // Return the first truthy value, or the last value
             // we don't even *evaluate* values after the first truthy (short-circuit)
             foreach ($values as $value) {
-                $current = static::apply($value, $data);
+                $current = static::apply($value, $data, false);
                 if (static::truthy($current)) {
                     return $current;
                 }
@@ -256,7 +269,7 @@ class JsonLogic
             return $current; // Last
 
         } elseif ($op === "filter") {
-            $scopedData = static::apply($values[0], $data);
+            $scopedData = static::apply($values[0], $data, false);
             $scopedLogic = $values[1];
 
             if (!$scopedData || !is_array($scopedData)) {
@@ -267,11 +280,12 @@ class JsonLogic
             // For parity with JavaScript, reindex the returned array
             return array_values(
                 array_filter($scopedData, function ($datum) use ($scopedLogic) {
-                    return static::truthy(static::apply($scopedLogic, $datum));
+                    static::$iteration_variable = $datum;
+                    return static::truthy(static::apply($scopedLogic, $datum, false));
                 })
             );
         } elseif ($op === "map") {
-            $scopedData = static::apply($values[0], $data);
+            $scopedData = static::apply($values[0], $data, false);
             $scopedLogic = $values[1];
 
             if (!$scopedData || !is_array($scopedData)) {
@@ -280,12 +294,13 @@ class JsonLogic
 
             return array_map(
                 function ($datum) use ($scopedLogic) {
-                    return static::apply($scopedLogic, $datum);
+                    static::$iteration_variable = $datum;
+                    return static::apply($scopedLogic, $datum, false);
                 },
                 $scopedData
             );
         } elseif ($op === "reduce") {
-            $scopedData = static::apply($values[0], $data);
+            $scopedData = static::apply($values[0], $data, false);
             $scopedLogic = $values[1];
             $initial = isset($values[2]) ? $values[2] : null;
 
@@ -296,29 +311,32 @@ class JsonLogic
             return array_reduce(
                 $scopedData,
                 function ($accumulator, $current) use ($scopedLogic) {
+                    static::$iteration_variable = ['current'=>$current, 'accumulator'=>$accumulator];
                     return static::apply(
                         $scopedLogic,
-                        ['current'=>$current, 'accumulator'=>$accumulator]
+                        ['current'=>$current, 'accumulator'=>$accumulator],
+                        false
                     );
                 },
                 $initial
             );
         } elseif ($op === "all") {
-            $scopedData = static::apply($values[0], $data);
+            $scopedData = static::apply($values[0], $data, false);
             $scopedLogic = $values[1];
 
             if (!$scopedData || !is_array($scopedData)) {
                 return false;
             }
             $filtered = array_filter($scopedData, function ($datum) use ($scopedLogic) {
-                return static::truthy(static::apply($scopedLogic, $datum));
+                static::$iteration_variable = $datum;
+                return static::truthy(static::apply($scopedLogic, $datum, false));
             });
             return count($filtered) === count($scopedData);
         } elseif ($op === "none") {
-            $filtered = static::apply(['filter' => $values], $data);
+            $filtered = static::apply(['filter' => $values], $data, false);
             return count($filtered) === 0;
         } elseif ($op === "some") {
-            $filtered = static::apply(['filter' => $values], $data);
+            $filtered = static::apply(['filter' => $values], $data, false);
             return count($filtered) > 0;
         }
 
@@ -332,12 +350,8 @@ class JsonLogic
 
         //Recursion!
         $values = array_map(function ($value) use ($data) {
-            return self::apply($value, $data);
+            return self::apply($value, $data, false);
         }, $values);
-
-        if ($op === 'var_static') {
-            $values = [(object)$values];
-        }
 
         return call_user_func_array($operation, $values);
     }

@@ -13,7 +13,8 @@
         "php": ">=7.2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.3.3"
+        "phpunit/phpunit": "^9.3.3",
+        "spatie/ray": "dev-main"
     },
     "autoload": {
         "psr-0": {

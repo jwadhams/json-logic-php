@@ -19,41 +19,54 @@ class JsonLogicTest extends TestCase
         $this->assertEquals(
             $expected,
             JWadhams\JsonLogic::apply($logic, $data),
-            "JsonLogic::apply(".json_encode($logic).", ".json_encode($data).") == ".json_encode($expected)
+            implode("\n", [
+                "JsonLogic::apply(".json_encode($logic).", ".json_encode($data).")",
+                "result: " . json_encode(JWadhams\JsonLogic::apply($logic, $data)),
+                "expected: " . json_encode($expected)
+            ])
         );
     }
 
 
     public function commonProvider()
     {
-        $local_path = __DIR__ . '/tests.json';
+        $tests = [
+            __DIR__ . '/tests.json',
+            __DIR__ . '/tests_new_variables.json',
+        ];
 
-        if (! file_exists($local_path)) {
-            echo "Downloading shared apply() tests from JsonLogic.com ...\n";
-            file_put_contents($local_path, fopen("http://jsonlogic.com/tests.json", 'r'));
-        } else {
-            echo "Using cached apply() tests from " . @ date('r', filemtime($local_path)) ."\n";
-            echo "(rm {$local_path} to refresh)\n";
-        }
+        $common_tests = [];
 
-        $body = file_get_contents($local_path);
+        foreach ($tests as $local_path) {
+            if (! file_exists($local_path)) {
+                echo "Downloading shared apply() tests from JsonLogic.com ...\n";
+                file_put_contents($local_path, fopen("http://jsonlogic.com/tests.json", 'r'));
+            } else {
+                echo "Using cached apply() tests from " . @ date('r', filemtime($local_path)) ."\n";
+                echo "(rm {$local_path} to refresh)\n";
+            }
 
-        $test_as_objects = json_decode($body);
-        $test_as_associative = json_decode($body, true);
+            $body = file_get_contents($local_path);
 
-        if ($test_as_objects === null or $test_as_associative === null) {
-            die("Could not parse tests.json!");
-        }
+            $test_as_objects = json_decode($body);
+            $test_as_associative = json_decode($body, true);
 
-        //Every scenario is double tested
-        $common_tests = array_merge(
+            if ($test_as_objects === null or $test_as_associative === null) {
+                die("Could not parse tests.json!");
+            }
+
+            //Every scenario is double tested
+            $common_tests = array_merge($common_tests, array_merge(
                 json_decode($body),//once using PHP objects
                 json_decode($body, true)//once using PHP associative arrays
-                );
-        $common_tests = array_filter($common_tests, function ($row) {
-            //Discard comments or malformed rows
-            return is_array($row) and count($row) >= 3;
-        });
+            ));
+            $common_tests = array_filter($common_tests, function ($row) {
+                //Discard comments or malformed rows
+                return is_array($row) && count($row) >= 3;
+            });
+        }
+
+
 
         return $common_tests;
     }
