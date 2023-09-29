@@ -127,7 +127,7 @@ class JsonLogic
                     $result = empty($a) ? $data() : $data(...explode('.', $a)); //Trying to get a value from a callback
                     static::$callable_cache[$cache_key] = $result;
 
-                    return $result;
+                    return $result ?? $default;
                 }
 
                 if (empty($a)) return $data;
