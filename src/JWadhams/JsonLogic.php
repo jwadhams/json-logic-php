@@ -8,6 +8,7 @@ class JsonLogic
 
     private static $variables = null;
     private static $iteration_variable = null;
+    private static $callable_cache = [];
 
     public static function get_operator($logic)
     {
@@ -109,13 +110,27 @@ class JsonLogic
                 error_log($a);
                 return $a;
             },
-            'var' => function ($a = null, $default = null) use ($data) {
-                if (empty($a)) {
-                    if (is_callable($data)) {
-                        return $data();
+            'var' => function ($a = null, $default = null) use ($logic, $data) {
+                if (is_array($a)) $a = implode('.', $a);
+
+                if (is_callable($data)) {
+                    $cache_key = md5(implode(':', [
+                        json_encode($logic),
+                        (new \ReflectionFunction($data))->__toString(),
+                        $a
+                    ]));
+
+                    if (isset(static::$callable_cache[$cache_key])) {
+                        return static::$callable_cache[$cache_key];
                     }
-                    return $data;
+
+                    $result = empty($a) ? $data() : $data(...explode('.', $a)); //Trying to get a value from a callback
+                    static::$callable_cache[$cache_key] = $result;
+
+                    return $result;
                 }
+
+                if (empty($a)) return $data;
                 //Descending into data using dot-notation
                 //This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
                 foreach (explode('.', $a) as $prop) {
@@ -123,8 +138,6 @@ class JsonLogic
                         $data = $data[$prop];
                     } elseif (is_object($data) && isset($data->{$prop})) {
                         $data = $data->{$prop};
-                    } elseif (is_callable($data)) {
-                        return $data($prop); //Trying to get a value from a callback
                     } else {
                         return $default; //Trying to get a value from a primitive
                     }
