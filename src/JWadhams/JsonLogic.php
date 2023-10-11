@@ -9,6 +9,7 @@ class JsonLogic
     private static $variables = null;
     private static $iteration_variable = null;
     private static $callable_cache = [];
+    private static $cache_key = 0;
 
     public static function get_operator($logic)
     {
@@ -47,6 +48,7 @@ class JsonLogic
 
     public static function apply($logic = [], $data = [], $rewrite = true)
     {
+        if ($rewrite) static::$cache_key = time().rand(0,9999);
         if ($rewrite) static::$variables = $data;
         //I'd rather work with array syntax
         if (is_object($logic)) {
@@ -115,6 +117,7 @@ class JsonLogic
 
                 if (is_callable($data)) {
                     $cache_key = md5(implode(':', [
+                        $cache_key,
                         json_encode($logic),
                         (new \ReflectionFunction($data))->__toString(),
                         $a
