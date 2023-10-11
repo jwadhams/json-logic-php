@@ -117,7 +117,7 @@ class JsonLogic
 
                 if (is_callable($data)) {
                     $cache_key = md5(implode(':', [
-                        $cache_key,
+                        static::$cache_key,
                         json_encode($logic),
                         (new \ReflectionFunction($data))->__toString(),
                         $a
