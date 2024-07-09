@@ -282,7 +282,7 @@ class JsonLogic
         } elseif ($op === "reduce") {
             $scopedData = static::apply($values[0], $data);
             $scopedLogic = $values[1];
-            $initial = isset($values[2]) ? $values[2] : null;
+            $initial = isset($values[2]) ? static::apply($values[2], $data) : null;
 
             if (!$scopedData || !is_array($scopedData)) {
                 return $initial;

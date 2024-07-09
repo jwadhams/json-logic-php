@@ -1,2 +1,4 @@
 /vendor/
 /tests/*.json
+.idea
+.phpunit.result.cache
