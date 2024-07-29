@@ -90,7 +90,7 @@ class JsonLogic
                 return ($a <= $b) and ($b <= $c) ;
             },
             '%' => function ($a, $b) {
-                return $a % $b;
+                return fmod($a, $b);
             },
             '!!' => function ($a) {
                 return static::truthy($a);
