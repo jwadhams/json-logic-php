@@ -4,7 +4,9 @@ namespace JWadhams;
 
 class JsonLogic
 {
+    private static $operators         = null;
     private static $custom_operations = [];
+
     public static function get_operator($logic)
     {
         return array_keys($logic)[0];
@@ -40,6 +42,104 @@ class JsonLogic
         return (bool)$logic;
     }
 
+    /**
+     * Define standard operators if not already defined.
+     */
+    public static function build_operators()
+    {
+        if(!self::$operators) {
+            self::$operators = [
+                '==' => function ($a, $b) {
+                    return $a == $b;
+                },
+                '===' => function ($a, $b) {
+                    return $a === $b;
+                },
+                '!=' => function ($a, $b) {
+                    return $a != $b;
+                },
+                '!==' => function ($a, $b) {
+                    return $a !== $b;
+                },
+                '>' => function ($a, $b) {
+                    return $a > $b;
+                },
+                '>=' => function ($a, $b) {
+                    return $a >= $b;
+                },
+                '<' => function ($a, $b, $c = null) {
+                    if ($c === null) {
+                        return $a < $b;
+                    }
+                    return  ($a < $b) and ($b < $c) ;
+                },
+                '<=' => function ($a, $b, $c = null) {
+                    if ($c === null) {
+                        return  $a <= $b;
+                    }
+                    return ($a <= $b) and ($b <= $c) ;
+                },
+                '%' => function ($a, $b) {
+                    return $a % $b;
+                },
+                '!!' => function ($a) {
+                    return static::truthy($a);
+                },
+                '!' => function ($a) {
+                    return ! static::truthy($a);
+                },
+                'log' => function ($a) {
+                    error_log($a);
+                    return $a;
+                },
+                'in' => function ($a, $b) {
+                    if (is_array($b)) {
+                        return in_array($a, $b);
+                    }
+                    if (is_string($b)) {
+                        return strpos($b, $a) !== false;
+                    }
+                    return false;
+                },
+                'cat' => function () {
+                    return implode("", func_get_args());
+                },
+                'max' => function () {
+                    return max(func_get_args());
+                },
+                'min' => function () {
+                    return min(func_get_args());
+                },
+                '+' => function () {
+                    return array_sum(func_get_args());
+                },
+                '-' => function ($a, $b=null) {
+                    if ($b===null) {
+                        return -$a;
+                    } else {
+                        return $a - $b;
+                    }
+                },
+                '/' => function ($a, $b) {
+                    return $a / $b;
+                },
+                '*' => function () {
+                    return array_reduce(func_get_args(), function ($a, $b) {
+                        return $a*$b;
+                    }, 1);
+                },
+                'merge' => function () {
+                    return array_reduce(func_get_args(), function ($a, $b) {
+                        return array_merge((array)$a, (array)$b);
+                    }, []);
+                },
+                'substr' => function () {
+                    return call_user_func_array('substr', func_get_args());
+                }
+            ];
+        }
+    }
+
     public static function apply($logic = [], $data = [])
     {
         //I'd rather work with array syntax
@@ -58,146 +158,13 @@ class JsonLogic
             }
         }
 
-        $operators = [
-            '==' => function ($a, $b) {
-                return $a == $b;
-            },
-            '===' => function ($a, $b) {
-                return $a === $b;
-            },
-            '!=' => function ($a, $b) {
-                return $a != $b;
-            },
-            '!==' => function ($a, $b) {
-                return $a !== $b;
-            },
-            '>' => function ($a, $b) {
-                return $a > $b;
-            },
-            '>=' => function ($a, $b) {
-                return $a >= $b;
-            },
-            '<' => function ($a, $b, $c = null) {
-                if ($c === null) {
-                    return $a < $b;
-                }
-                return  ($a < $b) and ($b < $c) ;
-            },
-            '<=' => function ($a, $b, $c = null) {
-                if ($c === null) {
-                    return  $a <= $b;
-                }
-                return ($a <= $b) and ($b <= $c) ;
-            },
-            '%' => function ($a, $b) {
-                return $a % $b;
-            },
-            '!!' => function ($a) {
-                return static::truthy($a);
-            },
-            '!' => function ($a) {
-                return ! static::truthy($a);
-            },
-            'log' => function ($a) {
-                error_log($a);
-                return $a;
-            },
-            'var' => function ($a = null, $default = null) use ($data) {
-                if ($a === null or $a === "") {
-                    return $data;
-                }
-                //Descending into data using dot-notation
-                //This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
-                foreach (explode('.', $a) as $prop) {
-                    if ((is_array($data) || $data instanceof \ArrayAccess) && isset($data[$prop])) {
-                        $data = $data[$prop];
-                    } elseif (is_object($data) && isset($data->{$prop})) {
-                        $data = $data->{$prop};
-                    } else {
-                        return $default; //Trying to get a value from a primitive
-                    }
-                }
-                return $data;
-            },
-            'missing' => function () use ($data) {
-                /*
-                Missing can receive many keys as many arguments, like {"missing:[1,2]}
-                Missing can also receive *one* argument that is an array of keys,
-                which typically happens if it's actually acting on the output of another command
-                (like IF or MERGE)
-                */
-                $values = func_get_args();
-                if (!static::is_logic($values) and isset($values[0]) and is_array($values[0])) {
-                    $values = $values[0];
-                }
-
-                $missing = [];
-                foreach ($values as $data_key) {
-                    $value = static::apply(['var'=>$data_key], $data);
-                    if ($value === null or $value === "") {
-                        array_push($missing, $data_key);
-                    }
-                }
-
-                return $missing;
-            },
-            'missing_some' => function ($minimum, $options) use ($data) {
-                $are_missing = static::apply(['missing'=>$options], $data);
-                if (count($options) - count($are_missing) >= $minimum) {
-                    return [];
-                } else {
-                    return $are_missing;
-                }
-            },
-            'in' => function ($a, $b) {
-                if (is_array($b)) {
-                    return in_array($a, $b);
-                }
-                if (is_string($b)) {
-                    return strpos($b, $a) !== false;
-                }
-                return false;
-            },
-            'cat' => function () {
-                return implode("", func_get_args());
-            },
-            'max' => function () {
-                return max(func_get_args());
-            },
-            'min' => function () {
-                return min(func_get_args());
-            },
-            '+' => function () {
-                return array_sum(func_get_args());
-            },
-            '-' => function ($a, $b=null) {
-                if ($b===null) {
-                    return -$a;
-                } else {
-                    return $a - $b;
-                }
-            },
-            '/' => function ($a, $b) {
-                return $a / $b;
-            },
-            '*' => function () {
-                return array_reduce(func_get_args(), function ($a, $b) {
-                    return $a*$b;
-                }, 1);
-            },
-            'merge' => function () {
-                return array_reduce(func_get_args(), function ($a, $b) {
-                    return array_merge((array)$a, (array)$b);
-                }, []);
-            },
-            'substr' => function () {
-                return call_user_func_array('substr', func_get_args());
-            }
-        ];
+        // ensure operators array is built.
+        self::build_operators();
 
         //There can be only one operand per logic step
         $op = static::get_operator($logic);
         $values = static::get_values($logic);
+        $operation = null;
 
         /**
         * Most rules need depth-first recursion. These rules need to manage their
@@ -315,12 +282,60 @@ class JsonLogic
         } elseif ($op === "some") {
             $filtered = static::apply(['filter' => $values], $data);
             return count($filtered) > 0;
-        }
+        } elseif ($op === 'var') {
+            $operation = function ($a = null, $default = null) use ($data) {
+                if ($a === null or $a === "") {
+                    return $data;
+                }
+                //Descending into data using dot-notation
+                //This is actually safe for integer indexes, PHP treats $a["1"] exactly like $a[1]
+                foreach (explode('.', $a) as $prop) {
+                    if ((is_array($data) || $data instanceof \ArrayAccess) && isset($data[$prop])) {
+                        $data = $data[$prop];
+                    } elseif (is_object($data) && isset($data->{$prop})) {
+                        $data = $data->{$prop};
+                    } else {
+                        return $default; //Trying to get a value from a primitive
+                    }
+                }
+                return $data;
+            };
+        } elseif ($op === 'missing') {
+            $operation = function () use ($data) {
+                /*
+                Missing can receive many keys as many arguments, like {"missing:[1,2]}
+                Missing can also receive *one* argument that is an array of keys,
+                which typically happens if it's actually acting on the output of another command
+                (like IF or MERGE)
+                */
+                $values = func_get_args();
+                if (!static::is_logic($values) and isset($values[0]) and is_array($values[0])) {
+                    $values = $values[0];
+                }
 
-        if (isset(self::$custom_operations[$op])) {
+                $missing = [];
+                foreach ($values as $data_key) {
+                    $value = static::apply(['var'=>$data_key], $data);
+                    if ($value === null or $value === "") {
+                        array_push($missing, $data_key);
+                    }
+                }
+
+                return $missing;
+            };
+        } elseif ($op === 'missing_some') {
+            $operation = function ($minimum, $options) use ($data) {
+                $are_missing = static::apply(['missing'=>$options], $data);
+                if (count($options) - count($are_missing) >= $minimum) {
+                    return [];
+                } else {
+                    return $are_missing;
+                }
+            };
+        } elseif (isset(self::$custom_operations[$op])) {
             $operation = self::$custom_operations[$op];
-        } elseif (isset($operators[$op])) {
-            $operation = $operators[$op];
+        } elseif (isset(self::$operators[$op])) {
+            $operation = self::$operators[$op];
         } else {
             throw new \Exception("Unrecognized operator $op");
         }
