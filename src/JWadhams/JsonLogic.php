@@ -50,9 +50,11 @@ class JsonLogic
         if (! self::is_logic($logic)) {
             if (is_array($logic)) {
                 //Could be an array of logic statements. Only one way to find out.
-                return array_map(function ($l) use ($data) {
-                    return self::apply($l, $data);
-                }, $logic);
+                $values = [];
+                foreach ($logic as $key => $value) {
+                    $values[$key] = self::apply($value, $data);
+                }
+                return $values;
             } else {
                 return $logic;
             }
