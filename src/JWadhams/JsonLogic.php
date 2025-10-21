@@ -2,6 +2,11 @@
 
 namespace JWadhams;
 
+use function is_object;
+use function is_array;
+use function is_string;
+use function count;
+
 class JsonLogic
 {
     private static $custom_operations = [];
