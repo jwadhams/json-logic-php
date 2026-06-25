@@ -60,12 +60,22 @@ class JsonLogic
 
         $operators = [
             '==' => function ($a, $b) {
+                // Match JavaScript's abstract equality for null: in JS `null` is
+                // loosely-equal only to `null`/`undefined`, never to 0, false or "".
+                // PHP's native `==` coerces null to those, so guard it here to keep
+                // rules evaluating identically to json-logic-js.
+                if ($a === null || $b === null) {
+                    return $a === null && $b === null;
+                }
                 return $a == $b;
             },
             '===' => function ($a, $b) {
                 return $a === $b;
             },
             '!=' => function ($a, $b) {
+                if ($a === null || $b === null) {
+                    return !($a === null && $b === null);
+                }
                 return $a != $b;
             },
             '!==' => function ($a, $b) {
